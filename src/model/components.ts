@@ -70,7 +70,9 @@ export type FortifyCommand = TimelineCommandBase & { kind: 'fortify' };
 export type ReloadSpecialCommand = TimelineCommandBase & { kind: 'reloadSpecial' };
 export type DeploySmokeCommand = TimelineCommandBase & {
   kind: 'deploySmoke';
+  duration: number;
   radius: number;
+  center: Vec3;
 };
 export type RefillCommand = TimelineCommandBase & { kind: 'refill' };
 

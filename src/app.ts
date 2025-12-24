@@ -17,6 +17,7 @@ import {
   type MenuCommand,
   type UnitKind,
 } from './timesims/uiPlan/menuState';
+import { authorDeploySmokeCommand, authorMoveCommand } from './timesims/uiPlan/authoring';
 
 import './style.css';
 
@@ -59,6 +60,17 @@ camera.position.set(0, 15, 15);
 camera.lookAt(0, 0, 0);
 
 const raycaster = new THREE.Raycaster();
+const groundPlane = new THREE.Plane(new THREE.Vector3(0, 1, 0), 0);
+
+function pickGroundPointAtClient(clientX: number, clientY: number): THREE.Vector3 | null {
+  const rect = renderer.domElement.getBoundingClientRect();
+  const x = ((clientX - rect.left) / rect.width) * 2 - 1;
+  const y = -((clientY - rect.top) / rect.height) * 2 + 1;
+  raycaster.setFromCamera({ x, y }, camera);
+  const out = new THREE.Vector3();
+  const hit = raycaster.ray.intersectPlane(groundPlane, out);
+  return hit ? out : null;
+}
 const pointerNdc = new THREE.Vector2();
 
 let unitSelectEl: HTMLSelectElement | null = null;
@@ -109,6 +121,38 @@ function renderContextMenu(): void {
     btn.addEventListener('click', () => {
       menuState = selectMenuCommand(menuState, cmd);
       console.log(`[ui] selected command: ${cmd}`);
+
+      // Spatial commands (Move / Deploy Smoke) enter placement mode.
+      // The actual plan mutation happens when the player left-clicks a target.
+      if (cmd !== 'move' && cmd !== 'deploySmoke') {
+        const u = units.find((x) => x.id === selectedUnitId) ?? null;
+        if (u) {
+          const startTime = Number(startInput.value) || 0;
+          const duration = Number(durInput.value) || 1;
+          const id = `cmd_${u.plan.commands.length}_${startTime.toFixed(4)}`;
+
+          if (cmd === 'fortify') {
+            u.plan = {
+              ...u.plan,
+              commands: [...u.plan.commands, { id, kind: 'fortify', startTime, duration }],
+            };
+          } else if (cmd === 'reloadSpecial') {
+            u.plan = {
+              ...u.plan,
+              commands: [...u.plan.commands, { id, kind: 'reloadSpecial', startTime, duration }],
+            };
+          } else if (cmd === 'refill') {
+            u.plan = {
+              ...u.plan,
+              commands: [...u.plan.commands, { id, kind: 'refill', startTime, duration }],
+            };
+          }
+
+          // These commands should not leave a pendingCommand behind.
+          menuState = { ...menuState, pendingCommand: null };
+        }
+      }
+
       renderContextMenu();
     });
     list.appendChild(btn);
@@ -291,6 +335,53 @@ async function init() {
   // Pointer selection in-scene (left click)
   renderer.domElement.addEventListener('pointerdown', (e) => {
     if (e.button !== 0) return;
+
+    // If a command is pending placement (e.g. Move / Smoke), confirm placement on left click.
+    if (menuState.pendingCommand && selectedUnitId) {
+      const u = units.find((x) => x.id === selectedUnitId) ?? null;
+      if (!u) return;
+      const ground = pickGroundPointAtClient(e.clientX, e.clientY);
+      if (!ground) return;
+      const startTime = Number(startInput.value);
+
+      if (menuState.pendingCommand === 'move') {
+        const res = authorMoveCommand({
+          plan: u.plan,
+          unitKind: u.type,
+          unitId: u.id,
+          startTime,
+          fromPos: { x: u.pos.x, y: 0, z: u.pos.z },
+          toPos: ground,
+          moveSpeed: u.moveSpeed,
+          dt: 0.1,
+        });
+        if (res.ok) {
+          u.plan = res.nextPlan;
+        }
+      } else if (menuState.pendingCommand === 'deploySmoke') {
+        const radius = Number(radiusInput.value);
+        const duration = Number(durInput.value);
+        const res = authorDeploySmokeCommand({
+          plan: u.plan,
+          unitKind: u.type,
+          unitId: u.id,
+          startTime,
+          duration,
+          center: { x: ground.x, y: 0, z: ground.z },
+          radius,
+          dt: 0.1,
+        });
+        if (res.ok) {
+          u.plan = res.nextPlan;
+        }
+      }
+
+      menuState = closeContextMenu(menuState);
+      menuState = { ...menuState, pendingCommand: null };
+      updateContextMenuDOM();
+      return;
+    }
+
     const hitId = pickUnitIdAtClient(e.clientX, e.clientY);
     if (hitId) setSelectedUnitId(hitId);
   });
@@ -549,7 +640,7 @@ function runSimulation() {
       pos: { x: u.initialPos.x, z: u.initialPos.z },
       visionRadius: u.visionRadius,
       plan: { commands: u.plan.commands.map((c) => ({ ...c })) },
-      speed: u.speed
+      speed: u.moveSpeed
     })),
     enemies: enemies.map((e) => ({ id: e.id, pos: { x: e.pos.x, z: e.pos.z } })),
     buildings: buildings.map((b) => ({ pos: { x: b.pos.x, z: b.pos.z }, radius: b.radius })),
@@ -559,8 +650,8 @@ function runSimulation() {
   world.units.forEach((u) => {
     u.plan.commands.forEach((cmd) => {
       if (cmd.kind === 'deploySmoke') {
-        const sm = cmd as any;
-        const pos = { x: u.pos.x, z: u.pos.z };
+        const sm = cmd;
+        const pos = { x: sm.center.x, z: sm.center.z };
         const startTime = sm.startTime;
         const endTime = sm.startTime + sm.duration;
         world.smokes.push({ pos, radius: sm.radius, startTime, endTime });
