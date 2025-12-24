@@ -62,6 +62,13 @@ export function ensureOverlayStyles(): void {
   height: auto;
 }
 
+.ts-window--orbit-controls {
+  width: 340px;
+}
+.ts-window--orbit-controls .ts-window__content {
+  height: auto;
+}
+
 `;
 
   document.head.appendChild(style);

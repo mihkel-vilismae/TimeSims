@@ -21,6 +21,7 @@ import { createUiState, setMenuState, setPendingCommand, setSelectedUnitId, type
 import { createRuntimeWorld, type RuntimeWorld } from '../entities/runtimeEntities';
 import { initOverlayUi, type OverlayUi } from './initOverlayUi';
 import { createCameraPresetController } from '../features/camera/cameraPresetController';
+import { createOrbitControlsController } from '../features/camera/orbitControlsController';
 import { createDebugInspector } from './createDebugInspector';
 
 export type ExecutionFrame = { t: number; units: Record<string, { x: number; z: number }> };
@@ -67,6 +68,9 @@ export type AppRuntime = {
 
   // UI overlays (debug window, etc.)
   overlayUi: OverlayUi;
+
+  // Camera controls (optional)
+  orbitControls: ReturnType<typeof createOrbitControlsController>;
 
   // Timing
   lastFrameMs: number;
@@ -154,8 +158,9 @@ export async function createRuntime(): Promise<AppRuntime> {
   const rt = createRuntimeState();
 
   const cameraPresets = createCameraPresetController({ camera, defaultPreset: 'ISOMETRIC' });
+  const orbitControls = createOrbitControlsController({ camera, domElement: renderer.domElement, enabled: false });
 
-  const overlayUi = initOverlayUi({ cameraPresets });
+  const overlayUi = initOverlayUi({ cameraPresets, orbitControls });
 
   const world = await createRuntimeWorld(scene);
   const plans: Record<string, TimelinePlan> = {};
@@ -176,6 +181,7 @@ export async function createRuntime(): Promise<AppRuntime> {
     ui,
     rt,
     overlayUi,
+    orbitControls,
     world,
     plans,
     markers: [],
