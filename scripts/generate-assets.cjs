@@ -1,4 +1,5 @@
 const fs = require('fs');
+const path = require('path');
 
 /*
  * Generates a set of simple glTF 2.0 assets.  Each asset consists of a single
@@ -8,7 +9,7 @@ const fs = require('fs');
  *
  * Running this script will create a collection of .gltf files under the
  * destination directory passed as the first argument.  If no destination
- * directory is provided it defaults to `src/assets`.  You should run this
+ * directory is provided it defaults to `public/assets/models`.  You should run this
  * script from the repository root via `node scripts/generate-assets.cjs`.  The
  * generated files are committed into source control so the project has
  * reproducible assets without external dependencies.
@@ -146,13 +147,11 @@ const assets = {
 };
 
 function main() {
-  const outDir = process.argv[2] || 'src/assets';
-  if (!fs.existsSync(outDir)) {
-    fs.mkdirSync(outDir, { recursive: true });
-  }
+  const outDir = path.resolve(process.argv[2] || 'public/assets/models');
+  if (!fs.existsSync(outDir)) fs.mkdirSync(outDir, { recursive: true });
   for (const [name, spec] of Object.entries(assets)) {
     const gltf = buildGltf(name, spec.colour, spec.scale);
-    const filename = `${outDir}/${name}.gltf`;
+    const filename = path.join(outDir, `${name}.gltf`);
     fs.writeFileSync(filename, JSON.stringify(gltf, null, 2));
     console.log(`Generated ${filename}`);
   }

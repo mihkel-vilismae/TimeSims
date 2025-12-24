@@ -48,9 +48,9 @@ maintain this golden rule.
 
 ## Assets
 
-The `src/assets` directory contains a set of simple [glTF 2.0](https://www.khronos.org/gltf/)
+The `public/assets/models` directory contains a set of simple [glTF 2.0](https://www.khronos.org/gltf/)
 models used for units, weapons, projectiles and visual effects.  They are
-generated programmatically by the script in `scripts/generate-assets.js`.  Each
+generated programmatically by the script in `scripts/generate-assets.cjs`.  Each
 asset is built from a single cube primitive scaled and coloured
 differently.  The models have no external textures – their materials are
 defined inline using PBR base colour factors.  This keeps the assets
@@ -75,7 +75,7 @@ use untextured PBR materials with differing base colours.
 You can regenerate the assets at any time by running:
 
 ```
-node scripts/generate-assets.cjs
+npm run generate-assets
 ```
 
 from the repository root.  See the script for details.
