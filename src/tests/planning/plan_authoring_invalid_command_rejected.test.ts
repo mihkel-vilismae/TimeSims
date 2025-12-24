@@ -1,6 +1,6 @@
 import { strict as assert } from 'node:assert';
-import type { TimelinePlan } from '../src/model/components';
-import { authorMoveCommand } from '../src/timesims/uiPlan/authoring';
+import type { TimelinePlan } from '../../model/components';
+import { authorMoveCommand } from '../../timesims/uiPlan/authoring';
 
 export async function runTests() {
   const plan: TimelinePlan = { commands: [] };

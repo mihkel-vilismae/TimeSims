@@ -2,7 +2,7 @@
 // unit should not detect the enemy until the smoke has ended.
 
 import assert from 'assert';
-import { simulatePlanning } from '../src/timesims/core/simulation';
+import { simulatePlanning } from '../../timesims/core/simulation';
 
 const v = (x: number, z: number) => ({ x, z });
 

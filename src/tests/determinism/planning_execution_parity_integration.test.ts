@@ -3,7 +3,7 @@
 // phases share the same core logic.
 
 import assert from 'assert';
-import { simulatePlanning, simulateExecution } from '../src/timesims/core/simulation';
+import { simulatePlanning, simulateExecution } from '../../timesims/core/simulation';
 
 const v = (x: number, z: number) => ({ x, z });
 
