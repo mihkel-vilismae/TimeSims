@@ -6,7 +6,7 @@ import {
   openContextMenu,
   selectMenuCommand,
   setSelectedUnitForMenu,
-} from '../src/timesims/uiPlan/menuState';
+} from '../../timesims/uiPlan/menuState';
 
 export async function runTests(): Promise<void> {
   // Plan reference should not be mutated by menu state logic.

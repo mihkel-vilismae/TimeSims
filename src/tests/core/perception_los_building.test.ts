@@ -3,7 +3,7 @@
 // the direct path restores LOS.
 
 import assert from 'assert';
-import { computeLOS } from '../src/timesims/core/los';
+import { computeLOS } from '../../timesims/core/los';
 
 // Define a helper to build a Vec2.
 const v = (x: number, z: number) => ({ x, z });
