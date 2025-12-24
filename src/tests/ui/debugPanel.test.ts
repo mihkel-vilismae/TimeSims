@@ -148,6 +148,16 @@ function findButtonByPrefix(root: FakeHTMLElement, prefix: string): FakeHTMLButt
   return null;
 }
 
+function findFirstInput(root: FakeHTMLElement): FakeHTMLInputElement | null {
+  const stack: FakeHTMLElement[] = [root];
+  while (stack.length) {
+    const n = stack.pop()!;
+    if (n instanceof FakeHTMLInputElement) return n;
+    stack.push(...n.children);
+  }
+  return null;
+}
+
 beforeEach(() => {
   const doc = new FakeDocument();
   (globalThis as any).document = doc;
@@ -178,6 +188,42 @@ describe('DebugPanel', () => {
     expect(btn2).not.toBeNull();
     expect(settings.get().verbose).toBe(true);
     expect(String(btn2!.textContent)).toContain('ON');
+
+    panel.dispose();
+  });
+
+  it('offers command autocomplete suggestions and supports Tab completion', () => {
+    ensureOverlayStyles();
+    const root = createOverlayRoot('test-overlay-root-autocomplete');
+
+    const log = createDebugLog(50);
+    const settings = createDebugSettingsStore({ verbose: false });
+    const runner = createDebugCommandRunner({ log, settings });
+
+    const panel = createDebugPanel({ log, settings, runner });
+    panel.window.mount(root);
+
+    const input = findFirstInput(panel.window.element as any);
+    expect(input).not.toBeNull();
+
+    input!.value = '/ver';
+    input!.dispatchEvent({ type: 'input' });
+
+    const ac = (panel.window.element as any).querySelector('.ts-debug-autocomplete') as FakeHTMLElement;
+    expect(ac).not.toBeNull();
+    expect(String((ac as any).style.display)).toBe('block');
+
+    const joined = ac.children.map((c) => String(c.textContent ?? '')).join('\n');
+    expect(joined).toContain('/verbose');
+
+    input!.dispatchEvent({ type: 'keydown', key: 'Tab', preventDefault() {} });
+    expect(input!.value).toContain('/verbose');
+
+    input!.value = '/verbose';
+    input!.dispatchEvent({ type: 'input' });
+    const help = (panel.window.element as any).querySelector('.ts-debug-help') as FakeHTMLElement;
+    expect(help).not.toBeNull();
+    expect(String(help.textContent ?? '')).toContain('Verbose');
 
     panel.dispose();
   });

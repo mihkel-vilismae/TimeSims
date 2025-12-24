@@ -57,6 +57,22 @@ export function createDebugPanel(args: CreateDebugPanelArgs): DebugPanel {
   controls.appendChild(input);
   controls.appendChild(btnRun);
 
+  const autocomplete = document.createElement('div');
+  autocomplete.className = 'ts-debug-autocomplete';
+  autocomplete.style.display = 'none';
+  autocomplete.style.border = '1px solid rgba(255,255,255,0.12)';
+  autocomplete.style.borderRadius = '6px';
+  autocomplete.style.padding = '4px';
+  autocomplete.style.fontSize = '12px';
+  autocomplete.style.maxHeight = '120px';
+  autocomplete.style.overflow = 'auto';
+
+  const helpText = document.createElement('div');
+  helpText.className = 'ts-debug-help';
+  helpText.style.fontSize = '12px';
+  helpText.style.opacity = '0.85';
+  helpText.textContent = 'Tip: type "/" then Tab to autocomplete. /help for full list.';
+
   const status = document.createElement('div');
   status.style.fontSize = '12px';
   status.style.opacity = '0.85';
@@ -77,6 +93,8 @@ export function createDebugPanel(args: CreateDebugPanelArgs): DebugPanel {
   logBox.appendChild(pre);
 
   root.appendChild(controls);
+  root.appendChild(autocomplete);
+  root.appendChild(helpText);
   root.appendChild(status);
   root.appendChild(logBox);
 
@@ -88,10 +106,56 @@ export function createDebugPanel(args: CreateDebugPanelArgs): DebugPanel {
     status.textContent = `enabled=${s.enabled ? 'true' : 'false'} verbose=${s.verbose ? 'true' : 'false'}`;
   }
 
+  let suggestionIndex = 0;
+  let suggestions: { command: string; help: string }[] = [];
+
+  function renderAutocomplete(): void {
+    if (!suggestions.length) {
+      autocomplete.style.display = 'none';
+      autocomplete.replaceChildren();
+      return;
+    }
+    autocomplete.style.display = 'block';
+    autocomplete.replaceChildren();
+
+    suggestions.forEach((s, idx) => {
+      const row = document.createElement('div');
+      row.className = 'ts-debug-suggestion';
+      row.dataset['cmd'] = s.command;
+      row.style.padding = '2px 6px';
+      row.style.borderRadius = '4px';
+      row.style.cursor = 'pointer';
+      row.style.opacity = idx === suggestionIndex ? '1' : '0.75';
+      row.textContent = `${s.command} — ${s.help}`;
+      row.addEventListener('click', () => {
+        (input as any).value = `${s.command} `;
+        (input as any).focus?.();
+        updateSuggestions();
+      });
+      autocomplete.appendChild(row);
+    });
+  }
+
+  function updateHelpText(): void {
+    const value = String((input as any).value ?? '').trim();
+    if (!value.startsWith('/')) return;
+    const token = value.slice(1).split(/\s+/, 1)[0] || '';
+    if (!token) return;
+    const help = args.runner.getHelp(token);
+    if (help) helpText.textContent = `/${token} — ${help}`;
+  }
+
+  function updateSuggestions(): void {
+    const value = String((input as any).value ?? '');
+    suggestions = args.runner.suggest(value);
+    suggestionIndex = Math.min(suggestionIndex, Math.max(0, suggestions.length - 1));
+    renderAutocomplete();
+    updateHelpText();
+  }
+
   function renderLines(): void {
     const lines = args.log.getLines();
     pre.textContent = lines.map((l) => l.text).join('\n');
-    // Auto-scroll to bottom.
     (logBox as any).scrollTop = (logBox as any).scrollHeight ?? 0;
   }
 
@@ -116,11 +180,38 @@ export function createDebugPanel(args: CreateDebugPanelArgs): DebugPanel {
   }
 
   btnRun.addEventListener('click', runInput);
+
   input.addEventListener('keydown', (ev: any) => {
+    if (ev?.key === 'Tab' && suggestions.length) {
+      ev.preventDefault?.();
+      const pick = suggestions[suggestionIndex] ?? suggestions[0];
+      if (pick) {
+        (input as any).value = `${pick.command} `;
+        updateSuggestions();
+      }
+      return;
+    }
+    if (ev?.key === 'ArrowDown' && suggestions.length) {
+      ev.preventDefault?.();
+      suggestionIndex = Math.min(suggestionIndex + 1, suggestions.length - 1);
+      renderAutocomplete();
+      return;
+    }
+    if (ev?.key === 'ArrowUp' && suggestions.length) {
+      ev.preventDefault?.();
+      suggestionIndex = Math.max(suggestionIndex - 1, 0);
+      renderAutocomplete();
+      return;
+    }
     if (ev?.key === 'Enter') {
       ev.preventDefault?.();
       runInput();
     }
+  });
+
+  input.addEventListener('input', () => {
+    suggestionIndex = 0;
+    updateSuggestions();
   });
 
   const pingHandle = setInterval(() => {
@@ -128,9 +219,9 @@ export function createDebugPanel(args: CreateDebugPanelArgs): DebugPanel {
     args.log.append('[ping]');
   }, 10_000);
 
-  // Initial paint
   renderSettings();
   renderLines();
+  updateSuggestions();
 
   return {
     window: w,
