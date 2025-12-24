@@ -85,7 +85,7 @@ function buildSimWorld(world: RuntimeWorld, plans: Record<string, TimelinePlan>)
     buildings: world.buildings
       .filter((b) => b.blocksLOS)
       .map((b) => ({ pos: { x: b.mesh.position.x, z: b.mesh.position.z }, radius: 3 })),
-    smoke: [],
+    smokes: [],
   };
 }
 

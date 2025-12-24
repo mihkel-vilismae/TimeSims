@@ -43,7 +43,7 @@ export function stepRuntime(rt: AppRuntime, nowMs: number): void {
       })),
       enemies: rt.world.enemies.map((e) => ({ id: e.id, pos: { x: e.mesh.position.x, z: e.mesh.position.z } })),
       buildings: rt.world.buildings.filter((b) => b.blocksLOS).map((b) => ({ pos: { x: b.mesh.position.x, z: b.mesh.position.z }, radius: 3 })),
-      smoke: [],
+      smokes: [],
     };
     const planned = simulatePlanning(simWorld, { dt: DEFAULT_DT_SEC, prepareDuration });
     rt.markers = planned.markers;

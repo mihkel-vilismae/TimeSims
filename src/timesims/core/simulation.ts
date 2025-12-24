@@ -4,6 +4,7 @@ import { stepSim, type DetectionState } from './stepSim';
 import type { TimelineMarker } from '../../model/commands';
 import type { SimWorld, SimUnit, SimEnemy } from '../../model/world';
 import { validatePlan } from '../planning/planSim';
+import {Smoke} from "../../model/components";
 
 // Types used by the simulation.  These are intentionally minimal and
 // defined here rather than relying directly on the engine's entity
