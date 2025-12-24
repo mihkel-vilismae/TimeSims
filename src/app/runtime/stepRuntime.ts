@@ -66,5 +66,7 @@ export function stepRuntime(rt: AppRuntime, nowMs: number): void {
     }
   }
 
+  rt.orbitControls.update();
+
   rt.composer.render();
 }
