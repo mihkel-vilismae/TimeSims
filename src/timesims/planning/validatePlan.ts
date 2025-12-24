@@ -2,7 +2,7 @@
 // contains validation helpers used by both planning and execution
 // phases.
 
-import type { TimelineCommand } from '../../model/components';
+import type { TimelineCommand } from '../../model/commands';
 
 /**
  * Validate a list of timeline commands against the prepare phase.  If a

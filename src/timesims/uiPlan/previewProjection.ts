@@ -1,4 +1,4 @@
-import type { TimelineMarker } from '../../model/components';
+import type { TimelineMarker } from '../../model/commands';
 import type { SimWorld, SimUnit } from '../core/simulation';
 import { simulatePlanning } from '../core/simulation';
 

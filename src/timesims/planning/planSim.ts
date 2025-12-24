@@ -5,4 +5,4 @@
 // planning, execution, and UI authoring without circular imports.
 
 export { validatePlan } from './validatePlan';
-export type { TimelineCommand } from '../../model/components';
+export type { TimelineCommand } from '../../model/commands';

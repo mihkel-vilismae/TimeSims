@@ -1,38 +1,16 @@
 import { Vec2, distance } from './geom';
 import { Occluder } from './los';
 import { stepSim, type DetectionState } from './stepSim';
-import type {
-  TimelinePlan,
-  TimelineCommand,
-  MoveCommand,
-  TimelineMarker
-} from '../../model/components';
-import type { Smoke } from '../../model/components';
+import type { TimelineMarker } from '../../model/commands';
+import type { SimWorld, SimUnit, SimEnemy } from '../../model/world';
 import { validatePlan } from '../planning/planSim';
 
 // Types used by the simulation.  These are intentionally minimal and
 // defined here rather than relying directly on the engine's entity
 // structures.  Simulation tests can construct these objects directly.
 
-export interface SimUnit {
-  id: string;
-  pos: Vec2;
-  visionRadius: number;
-  plan: TimelinePlan;
-  speed: number;
-}
-
-export interface SimEnemy {
-  id: string;
-  pos: Vec2;
-}
-
-export interface SimWorld {
-  units: SimUnit[];
-  enemies: SimEnemy[];
-  buildings: Occluder[];
-  smokes: Smoke[];
-}
+// SimWorld / SimUnit / SimEnemy are defined in src/model/world.ts to keep
+// simulation inputs as data-only schemas.
 
 /**
  * Return the active command at a given time for a list of commands.  If

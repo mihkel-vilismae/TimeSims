@@ -1,5 +1,5 @@
-import type { DeploySmokeCommand, MoveCommand, TimelinePlan } from '../../model/components';
-import type { Vec3 } from '../core/math';
+import type { DeploySmokeCommand, MoveCommand, TimelinePlan } from '../../model/commands';
+import type { Vec3 } from '../../model/components';
 
 export type UnitKind = 'infantry' | 'tank' | 'ifv' | 'bunker';
 

@@ -1,7 +1,8 @@
 import { distance } from './geom';
 import { computeLOS, Occluder } from './los';
-import type { TimelineCommand, MoveCommand, TimelineMarker, Smoke } from '../../model/components';
-import type { SimEnemy, SimUnit } from './simulation';
+import type { TimelineCommand, MoveCommand, TimelineMarker } from '../../model/commands';
+import type { Smoke } from '../../model/components';
+import type { SimEnemy, SimUnit } from '../../model/world';
 
 export type DetectionPairState = { lastLOS: boolean; lastDetected: boolean };
 export type DetectionState = Record<string, Record<string, DetectionPairState>>;
