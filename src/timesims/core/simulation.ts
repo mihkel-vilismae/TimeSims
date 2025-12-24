@@ -62,7 +62,7 @@ export function evaluateActiveCommand(commands: TimelineCommand[], t: number): T
 export function simulatePlanning(
   world: SimWorld,
   opts?: { dt?: number; prepareDuration?: number; endTime?: number }
-): { markers: TimelineMarker[]; warnings: string[]; units: SimUnit[] } {
+): { markers: TimelineMarker[]; warnings: string[]; units: SimUnit[]; frames: { t: number; units: Record<string, { x: number; z: number }> }[] } {
   const dt = opts?.dt ?? 0.1;
   const prepareDuration = opts?.prepareDuration ?? 10;
   const endTime = opts?.endTime ?? 15;
@@ -79,6 +79,7 @@ export function simulatePlanning(
   const smokes: Smoke[] = world.smokes.map((s) => ({ ...s }));
   const markers: TimelineMarker[] = [];
   const warnings: string[] = [];
+  const frames: { t: number; units: Record<string, { x: number; z: number }> }[] = [];
   // Generate validation warnings for each unit plan.
   for (const unit of units) {
     warnings.push(...validatePlan(unit.plan.commands, prepareDuration));
@@ -155,8 +156,14 @@ export function simulatePlanning(
         }
       }
     }
+    // Record a snapshot of unit positions for visualisation.
+    const snapshot: Record<string, { x: number; z: number }> = {};
+    for (const unit of units) {
+      snapshot[unit.id] = { x: unit.pos.x, z: unit.pos.z };
+    }
+    frames.push({ t, units: snapshot });
   }
-  return { markers, warnings, units };
+  return { markers, warnings, units, frames };
 }
 
 /**
