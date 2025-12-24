@@ -1,4 +1,5 @@
 import { strict as assert } from 'assert';
+import { test } from 'vitest';
 import {
   closeContextMenu,
   createMenuState,
@@ -53,3 +54,8 @@ export async function runTests(): Promise<void> {
   // Plan remains unchanged.
   assert.equal(plan.commands.length, planBeforeLen);
 }
+
+// Vitest wrapper for legacy runTests-style suites
+test('planning/context_menu_state_logic.test.ts', async () => {
+  await runTests();
+});

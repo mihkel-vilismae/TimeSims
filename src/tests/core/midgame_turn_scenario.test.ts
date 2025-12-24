@@ -5,6 +5,7 @@
 import assert from 'assert';
 import { simulatePlanning } from '../../timesims/core/simulation';
 
+import { test } from 'vitest';
 const v = (x: number, z: number) => ({ x, z });
 
 export async function runTests() {
@@ -127,3 +128,8 @@ export async function runTests() {
     );
   }
 }
+
+// Vitest wrapper for legacy runTests-style suites
+test('core/midgame_turn_scenario.test.ts', async () => {
+  await runTests();
+});
