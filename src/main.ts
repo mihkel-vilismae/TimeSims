@@ -1,4 +1,3 @@
-import './style.css';
-import { startApp } from './app/app';
-
-startApp();
+// Entry shim.
+// The real application entry is src/app/app.ts.
+import './app/app';

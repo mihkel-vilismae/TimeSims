@@ -1,3 +1,4 @@
+import "./style.css";
 import * as THREE from 'three';
 import { EffectComposer } from 'three/examples/jsm/postprocessing/EffectComposer.js';
 import { RenderPass } from 'three/examples/jsm/postprocessing/RenderPass.js';
@@ -307,3 +308,7 @@ export function startApp(): void {
   menuForSelection();
   frame();
 }
+
+// Auto-start when imported as the app entry.
+startApp();
+
