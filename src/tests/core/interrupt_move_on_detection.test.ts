@@ -3,6 +3,7 @@
 import assert from 'assert';
 import { simulatePlanning } from '../../timesims/core/simulation';
 
+import { test } from 'vitest';
 const v = (x: number, z: number) => ({ x, z });
 
 export async function runTests() {
@@ -60,3 +61,8 @@ export async function runTests() {
     `Unit should stop moving after detection; final x=${finalPos}`
   );
 }
+
+// Vitest wrapper for legacy runTests-style suites
+test('core/interrupt_move_on_detection.test.ts', async () => {
+  await runTests();
+});

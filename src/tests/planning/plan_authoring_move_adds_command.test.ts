@@ -2,6 +2,7 @@ import { strict as assert } from 'node:assert';
 import type { TimelinePlan } from '../../model/components';
 import { authorMoveCommand } from '../../timesims/uiPlan/authoring';
 
+import { test } from 'vitest';
 export async function runTests() {
   {
     const plan: TimelinePlan = { commands: [] };
@@ -46,3 +47,8 @@ export async function runTests() {
     }
   }
 }
+
+// Vitest wrapper for legacy runTests-style suites
+test('planning/plan_authoring_move_adds_command.test.ts', async () => {
+  await runTests();
+});

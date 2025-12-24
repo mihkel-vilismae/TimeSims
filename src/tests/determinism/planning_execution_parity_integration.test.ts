@@ -5,6 +5,7 @@
 import assert from 'assert';
 import { simulatePlanning, simulateExecution } from '../../timesims/core/simulation';
 
+import { test } from 'vitest';
 const v = (x: number, z: number) => ({ x, z });
 
 export async function runTests() {
@@ -46,3 +47,8 @@ export async function runTests() {
     'Planning and execution should produce identical markers'
   );
 }
+
+// Vitest wrapper for legacy runTests-style suites
+test('determinism/planning_execution_parity_integration.test.ts', async () => {
+  await runTests();
+});

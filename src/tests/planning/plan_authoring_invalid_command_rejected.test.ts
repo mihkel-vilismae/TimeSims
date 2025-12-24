@@ -2,6 +2,7 @@ import { strict as assert } from 'node:assert';
 import type { TimelinePlan } from '../../model/components';
 import { authorMoveCommand } from '../../timesims/uiPlan/authoring';
 
+import { test } from 'vitest';
 export async function runTests() {
   const plan: TimelinePlan = { commands: [] };
   const res = authorMoveCommand({
@@ -19,3 +20,8 @@ export async function runTests() {
   if (!res.ok) assert.equal(res.code, 'E_UNIT_CANNOT_MOVE');
   assert.equal(plan.commands.length, 0);
 }
+
+// Vitest wrapper for legacy runTests-style suites
+test('planning/plan_authoring_invalid_command_rejected.test.ts', async () => {
+  await runTests();
+});

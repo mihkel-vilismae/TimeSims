@@ -5,6 +5,7 @@
 import assert from 'assert';
 import { computeLOS } from '../../timesims/core/los';
 
+import { test } from 'vitest';
 // Define a helper to build a Vec2.
 const v = (x: number, z: number) => ({ x, z });
 
@@ -30,3 +31,8 @@ export async function runTests() {
   const losBlocked2 = computeLOS(unit, enemy, buildings3, smokes, 0);
   assert.strictEqual(losBlocked2, false, 'LOS should still be blocked when one building is on path');
 }
+
+// Vitest wrapper for legacy runTests-style suites
+test('core/perception_los_building.test.ts', async () => {
+  await runTests();
+});
