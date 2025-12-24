@@ -19,6 +19,7 @@ import type { SimWorld } from '../../model/world';
 import { createRuntimeState, type RuntimeState } from '../state/runtimeState';
 import { createUiState, setMenuState, setPendingCommand, setSelectedUnitId, type UiState } from '../state/uiState';
 import { createRuntimeWorld, type RuntimeWorld } from '../entities/runtimeEntities';
+import { initOverlayUi, type OverlayUi } from './initOverlayUi';
 
 export type ExecutionFrame = { t: number; units: Record<string, { x: number; z: number }> };
 
@@ -61,6 +62,9 @@ export type AppRuntime = {
 
   // Cleanup
   disposeInputHandlers: (() => void) | null;
+
+  // UI overlays (debug window, etc.)
+  overlayUi: OverlayUi;
 
   // Timing
   lastFrameMs: number;
@@ -147,6 +151,8 @@ export async function createRuntime(): Promise<AppRuntime> {
   const ui = createUiState(menuState);
   const rt = createRuntimeState();
 
+  const overlayUi = initOverlayUi();
+
   const world = await createRuntimeWorld(scene);
   const plans: Record<string, TimelinePlan> = {};
   for (const u of world.units) plans[u.id] = emptyPlan();
@@ -165,6 +171,7 @@ export async function createRuntime(): Promise<AppRuntime> {
     btnStop,
     ui,
     rt,
+    overlayUi,
     world,
     plans,
     markers: [],

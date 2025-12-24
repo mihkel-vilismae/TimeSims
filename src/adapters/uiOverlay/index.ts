@@ -5,3 +5,6 @@ export type { AnchorOffsetsPx, AnchorPreset, FloatingRectPx, WindowOptions } fro
 export { Window } from './windows/Window';
 export { FloatingWindow } from './windows/FloatingWindow';
 export { AnchoredWindow } from './windows/AnchoredWindow';
+
+export type { DebugLogLine, DebugLogPort, DebugLogSubscriber } from './DebugLog';
+export { createDebugLog } from './DebugLog';
