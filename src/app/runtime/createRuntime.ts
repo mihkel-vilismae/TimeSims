@@ -20,6 +20,7 @@ import { createRuntimeState, type RuntimeState } from '../state/runtimeState';
 import { createUiState, setMenuState, setPendingCommand, setSelectedUnitId, type UiState } from '../state/uiState';
 import { createRuntimeWorld, type RuntimeWorld } from '../entities/runtimeEntities';
 import { initOverlayUi, type OverlayUi } from './initOverlayUi';
+import { createDebugInspector } from './createDebugInspector';
 
 export type ExecutionFrame = { t: number; units: Record<string, { x: number; z: number }> };
 
@@ -182,6 +183,9 @@ export async function createRuntime(): Promise<AppRuntime> {
     disposeInputHandlers: null,
     lastFrameMs: performance.now(),
   };
+
+  // Attach inspector used by debug info commands.
+  overlayUi.runner.setInspect(createDebugInspector(runtime));
 
   function updateViewportSize(): void {
     const r = viewportEl.getBoundingClientRect();
