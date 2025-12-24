@@ -53,6 +53,15 @@ export function ensureOverlayStyles(): void {
 .ts-window--resizable { resize: both; }
 .ts-window--floating { box-shadow: 0 6px 20px rgba(0,0,0,0.35); }
 .ts-window--minimized { height: auto !important; }
+
+/* Specific panels */
+.ts-window--camera-presets {
+  width: 340px;
+}
+.ts-window--camera-presets .ts-window__content {
+  height: auto;
+}
+
 `;
 
   document.head.appendChild(style);

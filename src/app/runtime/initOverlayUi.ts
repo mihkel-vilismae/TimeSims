@@ -2,16 +2,23 @@ import { createOverlayRoot, ensureOverlayStyles, createDebugLog } from '../../ad
 import { createDebugSettingsStore, type DebugSettingsStore } from '../state/debugSettings';
 import { createDebugCommandRunner, type DebugCommandRunner } from '../systems/debugCommands/runDebugCommand';
 import { createDebugPanel } from '../../adapters/uiOverlay/panels/DebugPanel';
+import { createCameraPresetsPanel } from '../../adapters/uiOverlay/panels/CameraPresetsPanel';
 import type { DebugLogPort } from '../../adapters/uiOverlay/DebugLog';
+import type { CameraPresetController } from '../features/camera/cameraPresetController';
 
 export type OverlayUi = {
   log: DebugLogPort;
   settings: DebugSettingsStore;
   runner: DebugCommandRunner;
+  cameraPresets?: CameraPresetController;
   dispose(): void;
 };
 
-export function initOverlayUi(): OverlayUi {
+export type InitOverlayUiArgs = {
+  cameraPresets?: CameraPresetController;
+};
+
+export function initOverlayUi(args: InitOverlayUiArgs = {}): OverlayUi {
   ensureOverlayStyles();
   const root = createOverlayRoot('ui-overlay-root');
 
@@ -22,6 +29,9 @@ export function initOverlayUi(): OverlayUi {
   const debugPanel = createDebugPanel({ log, settings, runner });
   debugPanel.window.mount(root);
 
+  const cameraPanel = args.cameraPresets ? createCameraPresetsPanel({ controller: args.cameraPresets }) : null;
+  cameraPanel?.window.mount(root);
+
   // Start with a hint
   log.append('[debug] type /help');
 
@@ -29,8 +39,10 @@ export function initOverlayUi(): OverlayUi {
     log,
     settings,
     runner,
+    cameraPresets: args.cameraPresets,
     dispose() {
       debugPanel.dispose();
+      cameraPanel?.dispose();
     },
   };
 }
