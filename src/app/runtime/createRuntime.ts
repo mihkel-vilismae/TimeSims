@@ -20,6 +20,7 @@ import { createRuntimeState, type RuntimeState } from '../state/runtimeState';
 import { createUiState, setMenuState, setPendingCommand, setSelectedUnitId, type UiState } from '../state/uiState';
 import { createRuntimeWorld, type RuntimeWorld } from '../entities/runtimeEntities';
 import { initOverlayUi, type OverlayUi } from './initOverlayUi';
+import { createCameraPresetController } from '../features/camera/cameraPresetController';
 import { createDebugInspector } from './createDebugInspector';
 
 export type ExecutionFrame = { t: number; units: Record<string, { x: number; z: number }> };
@@ -152,7 +153,9 @@ export async function createRuntime(): Promise<AppRuntime> {
   const ui = createUiState(menuState);
   const rt = createRuntimeState();
 
-  const overlayUi = initOverlayUi();
+  const cameraPresets = createCameraPresetController({ camera, defaultPreset: 'ISOMETRIC' });
+
+  const overlayUi = initOverlayUi({ cameraPresets });
 
   const world = await createRuntimeWorld(scene);
   const plans: Record<string, TimelinePlan> = {};
