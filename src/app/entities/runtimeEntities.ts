@@ -95,12 +95,12 @@ export async function createRuntimeWorld(scene: THREE.Scene): Promise<RuntimeWor
   scene.add(ground);
 
   // Models
-  const infantryModel = await loadModel(loader, new URL('../../assets/infantry.glb', import.meta.url).toString());
-  const tankModel = await loadModel(loader, new URL('../../assets/tank.glb', import.meta.url).toString());
-  const ifvModel = await loadModel(loader, new URL('../../assets/ifv.glb', import.meta.url).toString());
-  const bunkerModel = await loadModel(loader, new URL('../../assets/bunker.glb', import.meta.url).toString());
-  const enemyModel = await loadModel(loader, new URL('../../assets/enemy.glb', import.meta.url).toString());
-  const buildingModel = await loadModel(loader, new URL('../../assets/building_block.glb', import.meta.url).toString());
+  const infantryModel = await loadModel(loader, new URL('../../../public/assets/models/infantry.gltf', import.meta.url).toString());
+  const tankModel = await loadModel(loader, new URL('../../../public/assets/models/tank.gltf', import.meta.url).toString());
+  const ifvModel = await loadModel(loader, new URL('../../../public/assets/models/ifv.gltf', import.meta.url).toString());
+  const bunkerModel = await loadModel(loader, new URL('../../../public/assets/models/bunker.gltf', import.meta.url).toString());
+  const enemyModel = await loadModel(loader, new URL('../../../public/assets/models/enemy.gltf', import.meta.url).toString());
+  const buildingModel = await loadModel(loader, new URL('../../../public/assets/models/building_block.gltf', import.meta.url).toString());
 
   const units: UnitRuntime[] = [];
   const enemies: EnemyRuntime[] = [];

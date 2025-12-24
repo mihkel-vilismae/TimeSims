@@ -135,15 +135,19 @@ function buildGltf(assetName, colour, scale) {
 }
 
 const assets = {
-  infantry: { colour: [0.4, 0.8, 0.4], scale: [0.5, 0.8, 0.5] },
-  tank: { colour: [0.8, 0.4, 0.4], scale: [1.5, 0.6, 2.0] },
-  ifv: { colour: [0.3, 0.6, 0.8], scale: [1.3, 0.6, 1.6] },
-  bunker: { colour: [0.7, 0.7, 0.6], scale: [2.0, 1.0, 2.0] },
-  weapon_small: { colour: [0.3, 0.3, 0.3], scale: [0.4, 0.4, 0.8] },
-  weapon_large: { colour: [0.4, 0.4, 0.4], scale: [0.6, 0.6, 1.2] },
-  projectile: { colour: [1.0, 0.8, 0.2], scale: [0.3, 0.3, 0.3] },
-  muzzle_flash: { colour: [1.0, 0.6, 0.2], scale: [0.6, 0.1, 0.6] },
-  smoke: { colour: [0.7, 0.7, 0.7], scale: [1.2, 1.2, 1.2] }
+    infantry: { colour: [0.4, 0.8, 0.4], scale: [0.5, 0.8, 0.5] },
+    tank: { colour: [0.8, 0.4, 0.4], scale: [1.5, 0.6, 2.0] },
+    ifv: { colour: [0.3, 0.6, 0.8], scale: [1.3, 0.6, 1.6] },
+    bunker: { colour: [0.7, 0.7, 0.6], scale: [2.0, 1.0, 2.0] },
+    weapon_small: { colour: [0.3, 0.3, 0.3], scale: [0.4, 0.4, 0.8] },
+    weapon_large: { colour: [0.4, 0.4, 0.4], scale: [0.6, 0.6, 1.2] },
+    projectile: { colour: [1.0, 0.8, 0.2], scale: [0.3, 0.3, 0.3] },
+    muzzle_flash: { colour: [1.0, 0.6, 0.2], scale: [0.6, 0.1, 0.6] },
+    smoke: { colour: [0.7, 0.7, 0.7], scale: [1.2, 1.2, 1.2] },
+
+    // ✅ Added to satisfy runtime paths:
+    enemy: { colour: [0.9, 0.2, 0.2], scale: [0.8, 1.2, 0.8] },
+    building_block: { colour: [0.6, 0.6, 0.65], scale: [2.5, 2.5, 2.5] },
 };
 
 function main() {
