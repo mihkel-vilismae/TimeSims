@@ -5,6 +5,9 @@ export type ContextMenuDom = {
   list: HTMLDivElement;
 };
 
+export type ViewportSize = { w: number; h: number };
+export type MenuSize = { w: number; h: number };
+
 export function createContextMenuDom(): ContextMenuDom {
   const root = document.createElement('div');
   root.className = 'context-menu';
@@ -67,4 +70,24 @@ function labelForCommand(cmd: MenuCommand): string {
       return _exhaustive;
     }
   }
+}
+
+/**
+ * Clamp a menu position so it stays fully within the viewport.
+ *
+ * This is UI-only math (no DOM reads) so it can be safely unit-tested
+ * if we later choose to.
+ */
+export function clampMenuToViewport(params: {
+  x: number;
+  y: number;
+  menu: MenuSize;
+  viewport: ViewportSize;
+}): { x: number; y: number } {
+  const { menu, viewport } = params;
+  const maxX = Math.max(0, viewport.w - menu.w);
+  const maxY = Math.max(0, viewport.h - menu.h);
+  const x = Math.min(Math.max(0, params.x), maxX);
+  const y = Math.min(Math.max(0, params.y), maxY);
+  return { x, y };
 }

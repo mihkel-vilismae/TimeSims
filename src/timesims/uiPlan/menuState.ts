@@ -78,6 +78,22 @@ export function closeContextMenu(prev: MenuState): MenuState {
   return { ...prev, open: false };
 }
 
+// ---------------------------------------------------------------------------
+// Compatibility exports
+//
+// The app wiring uses these names. Keep them as tiny wrappers so we can
+// refactor UI modules without breaking imports.
+// ---------------------------------------------------------------------------
+
+export const openMenu = openContextMenu;
+export const closeMenu = closeContextMenu;
+
+export function getVisibleCommandsForSelectedUnit(
+  unitKind: UnitKind,
+): Array<MenuCommand> {
+  return getValidCommandsForUnit(unitKind);
+}
+
 export function setSelectedUnitForMenu(prev: MenuState, selectedUnitKind: UnitKind | null): MenuState {
   if (selectedUnitKind === null) {
     return { ...prev, open: false, selectedUnitKind: null, commands: [] };
