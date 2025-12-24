@@ -15,6 +15,7 @@ interface GameUnit {
   id: string;
   type: 'infantry' | 'tank' | 'ifv';
   mesh: THREE.Object3D;
+  selectRing: THREE.Mesh;
   visionRadius: number;
   speed: number;
   plan: TimelinePlan;
@@ -45,6 +46,25 @@ scene.background = new THREE.Color(0x0f1116);
 const camera = new THREE.PerspectiveCamera(60, window.innerWidth / window.innerHeight, 0.1, 100);
 camera.position.set(0, 15, 15);
 camera.lookAt(0, 0, 0);
+
+const raycaster = new THREE.Raycaster();
+const pointerNdc = new THREE.Vector2();
+
+let unitSelectEl: HTMLSelectElement | null = null;
+let selectedUnitId: string | null = null;
+let refreshCmdListFn: (() => void) | null = null;
+
+function getSelectedUnitId(): string | null {
+  if (selectedUnitId) return selectedUnitId;
+  return unitSelectEl ? unitSelectEl.value : null;
+}
+
+function setSelectedUnitId(nextId: string) {
+  selectedUnitId = nextId;
+  if (unitSelectEl) unitSelectEl.value = nextId;
+  for (const u of units) u.selectRing.visible = u.id === nextId;
+  refreshCmdListFn?.();
+}
 
 // Resize handler to maintain aspect ratio.
 window.addEventListener('resize', () => {
@@ -111,7 +131,23 @@ function createUnit(id: string, type: 'infantry' | 'tank' | 'ifv', position: { x
   const template = assets[type];
   const mesh = template.clone(true);
   mesh.position.set(position.x, 0, position.z);
+
+  // Tag the hierarchy for pointer picking.
+  mesh.traverse((o) => {
+    o.userData = o.userData ?? {};
+    o.userData.unitId = id;
+  });
+
   scene.add(mesh);
+
+  // Selection ring (visible only when selected).
+  const ringGeom = new THREE.RingGeometry(0.6, 0.75, 48);
+  const ringMat = new THREE.MeshBasicMaterial({ color: 0x00ff66, opacity: 0.9, transparent: true, side: THREE.DoubleSide });
+  const selectRing = new THREE.Mesh(ringGeom, ringMat);
+  selectRing.rotation.x = -Math.PI / 2;
+  selectRing.position.y = 0.02;
+  selectRing.visible = false;
+  mesh.add(selectRing);
   // Vision disk
   const visGeom = new THREE.CircleGeometry(visionRadius, 32);
   const visMat = new THREE.MeshBasicMaterial({ color: 0x3388ff, opacity: 0.2, transparent: true, side: THREE.DoubleSide });
@@ -128,6 +164,7 @@ function createUnit(id: string, type: 'infantry' | 'tank' | 'ifv', position: { x
     id,
     type,
     mesh,
+    selectRing,
     visionRadius,
     speed,
     plan: { commands: [] },
@@ -168,8 +205,42 @@ async function init() {
   createBuilding({ x: 2, z: 6 }, 1);
   // Setup UI components
   setupUI();
+
+  // Initial selection
+  if (units.length > 0) {
+    setSelectedUnitId(units[0].id);
+  }
+
+  // Pointer selection in-scene (left click)
+  renderer.domElement.addEventListener('pointerdown', (e) => {
+    if (e.button !== 0) return;
+    const hitId = pickUnitIdAtClient(e.clientX, e.clientY);
+    if (hitId) setSelectedUnitId(hitId);
+  });
   // Start rendering loop
   animate();
+}
+
+function pickUnitIdAtClient(clientX: number, clientY: number): string | null {
+  const rect = renderer.domElement.getBoundingClientRect();
+  const x = (clientX - rect.left) / rect.width;
+  const y = (clientY - rect.top) / rect.height;
+  pointerNdc.set(x * 2 - 1, -(y * 2 - 1));
+
+  raycaster.setFromCamera(pointerNdc, camera);
+  const hits = raycaster.intersectObjects(
+    units.map((u) => u.mesh),
+    true,
+  );
+  for (const hit of hits) {
+    let o: THREE.Object3D | null = hit.object;
+    while (o) {
+      const uid = o.userData?.unitId;
+      if (typeof uid === 'string') return uid;
+      o = o.parent;
+    }
+  }
+  return null;
 }
 
 // Build the control panel UI.
@@ -191,6 +262,8 @@ function setupUI() {
     unitSelect.appendChild(opt);
   });
   ui.appendChild(unitSelect);
+  unitSelectEl = unitSelect;
+  if (!selectedUnitId) selectedUnitId = unitSelect.value;
   ui.appendChild(document.createElement('br'));
   // Start time and duration inputs
   const timeGroup = document.createElement('div');
@@ -255,7 +328,8 @@ function setupUI() {
   // Helper to refresh the list of commands for the selected unit
   function refreshCmdList() {
     cmdList.innerHTML = '';
-    const unit = units.find((u) => u.id === unitSelect.value);
+    const selId = getSelectedUnitId() ?? unitSelect.value;
+    const unit = units.find((u) => u.id === selId);
     if (!unit) return;
     unit.plan.commands.sort((a, b) => a.startTime - b.startTime);
     unit.plan.commands.forEach((cmd, idx) => {
@@ -266,7 +340,10 @@ function setupUI() {
       cmdList.appendChild(div);
     });
   }
-  unitSelect.addEventListener('change', refreshCmdList);
+  refreshCmdListFn = refreshCmdList;
+  unitSelect.addEventListener('change', () => {
+    setSelectedUnitId(unitSelect.value);
+  });
 
   // Add command handlers
   moveBtn.onclick = () => {
