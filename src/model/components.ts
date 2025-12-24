@@ -1,0 +1,1 @@
+export type Transform={pos:{x:number;y:number;z:number};rot:{x:number;y:number;z:number}};
