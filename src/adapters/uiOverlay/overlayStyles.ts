@@ -10,6 +10,12 @@ export function ensureOverlayStyles(): void {
   const style = document.createElement('style');
   style.id = STYLE_ID;
   style.textContent = `
+#ui-overlay-root {
+  pointer-events: none;
+}
+#ui-overlay-root .ts-window {
+  pointer-events: auto;
+}
 .ts-window {
   pointer-events: auto;
   box-sizing: border-box;

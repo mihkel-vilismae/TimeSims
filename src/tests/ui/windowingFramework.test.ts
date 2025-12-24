@@ -219,6 +219,24 @@ describe('uiOverlay windowing framework (node DOM shim)', () => {
     expect(el.style.transform).toBe('translateX(-50%)');
   });
 
+  it('createOverlayRoot does not create a full-screen hitbox', () => {
+    const root = createOverlayRoot('test-overlay-root-hitbox');
+    expect(root.style.position).toBe('fixed');
+    expect(root.style.width).toBe('0');
+    expect(root.style.height).toBe('0');
+    expect(root.style.left).toBe('0');
+    expect(root.style.top).toBe('0');
+    expect(root.style.pointerEvents).toBe('none');
+  });
+
+  it('ensureOverlayStyles includes overlay root pointer-events guard', () => {
+    ensureOverlayStyles();
+    const styleEl: any = (globalThis as any).document.getElementById('timesims-ui-overlay-styles');
+    expect(styleEl).not.toBeNull();
+    expect(String(styleEl.textContent)).toContain('#ui-overlay-root');
+    expect(String(styleEl.textContent)).toContain('pointer-events: none');
+  });
+
   it('ensureOverlayStyles is idempotent', () => {
     ensureOverlayStyles();
     const first = (globalThis as any).document.getElementById('timesims-ui-overlay-styles');
