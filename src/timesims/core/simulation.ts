@@ -1,5 +1,6 @@
 import { Vec2, distance } from './geom';
-import { computeLOS, Occluder } from './los';
+import { Occluder } from './los';
+import { stepSim, type DetectionState } from './stepSim';
 import type {
   TimelinePlan,
   TimelineCommand,
@@ -38,14 +39,6 @@ export interface SimWorld {
  * multiple commands overlap the first matching entry is returned.  Only
  * one command can be active at a time in this simplified model.
  */
-export function evaluateActiveCommand(commands: TimelineCommand[], t: number): TimelineCommand | null {
-  for (const cmd of commands) {
-    if (t >= cmd.startTime && t < cmd.startTime + cmd.duration) {
-      return cmd;
-    }
-  }
-  return null;
-}
 
 /**
  * Perform an offline planning simulation.  The simulation advances in
@@ -99,69 +92,18 @@ export function simulatePlanning(
   }
   // Main simulation loop.
   for (let t = 0; t <= endTime; t = Math.round((t + dt) * 1e4) / 1e4) {
-    // Update unit positions.
-    for (const unit of units) {
-      if (interrupted[unit.id]) continue;
-      const active = evaluateActiveCommand(unit.plan.commands, t);
-      if (active && (active as MoveCommand).kind === 'move') {
-        const mv = active as MoveCommand;
-        // Normalize direction on the XZ plane.
-        const dx = mv.direction.x;
-        const dz = mv.direction.z;
-        const len = Math.hypot(dx, dz);
-        const nx = len > 0 ? dx / len : 0;
-        const nz = len > 0 ? dz / len : 0;
-        unit.pos.x += nx * unit.speed * dt;
-        unit.pos.z += nz * unit.speed * dt;
-      }
-    }
-    // Perception check for each unit/enemy pair.
-    for (const unit of units) {
-      for (const enemy of enemies) {
-        const state = detectionState[unit.id][enemy.id];
-        const d = distance(unit.pos, enemy.pos);
-        const hasLOS = computeLOS(unit.pos, enemy.pos, buildings, smokes, t);
-        const detected = d <= unit.visionRadius && hasLOS;
-        // Emit LOS transition marker if LOS flips.
-        if (hasLOS !== state.lastLOS) {
-          markers.push({
-            t,
-            kind: 'los',
-            message: `${unit.id}:${enemy.id} los ${hasLOS ? 'true' : 'false'}`
-          });
-          state.lastLOS = hasLOS;
-        }
-        // Emit detection marker and optional interruption marker on rising edge.
-        if (detected && !state.lastDetected) {
-          markers.push({
-            t,
-            kind: 'detection',
-            message: `${unit.id} detected ${enemy.id}`
-          });
-          // If unit is currently moving and not yet interrupted, emit interrupt marker.
-          const active = evaluateActiveCommand(unit.plan.commands, t);
-          if (active && (active as MoveCommand).kind === 'move' && !interrupted[unit.id]) {
-            markers.push({
-              t,
-              kind: 'interrupt',
-              message: `${unit.id} interrupted movement due to detection`
-            });
-            interrupted[unit.id] = true;
-          }
-          state.lastDetected = true;
-        }
-        // Reset detection on falling edge.
-        if (!detected && state.lastDetected) {
-          state.lastDetected = false;
-        }
-      }
-    }
-    // Record a snapshot of unit positions for visualisation.
-    const snapshot: Record<string, { x: number; z: number }> = {};
-    for (const unit of units) {
-      snapshot[unit.id] = { x: unit.pos.x, z: unit.pos.z };
-    }
-    frames.push({ t, units: snapshot });
+    const frame = stepSim({
+      t,
+      dt,
+      units,
+      enemies,
+      buildings,
+      smokes,
+      markers,
+      detectionState,
+      interrupted
+    });
+    frames.push({ t, units: frame.units });
   }
   return { markers, warnings, units, frames };
 }
