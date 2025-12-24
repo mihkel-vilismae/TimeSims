@@ -14,6 +14,9 @@ export type Transform = { pos: Vec3; rot: Vec3 };
 // separate speed/direction fields so we can easily update positions.
 export type Velocity = { v: Vec3 };
 
+// Move speed scalar used by runtime entities.
+export type MoveSpeed = { speed: number };
+
 // Vision component.  `radius` defines how far the unit can see and
 // `losMask` can be used to filter which layers block vision (unused for now).
 export type Vision = { radius: number; losMask: number };
@@ -50,63 +53,6 @@ export type Smoke = {
   radius: number;
   startTime: number;
   endTime: number;
-};
-
-// Base information for a timeline command.  Commands are scheduled on a
-// shared global timeline and have a start time and duration.
-export type TimelineCommandBase = {
-  id: string;
-  startTime: number;
-  duration: number;
-};
-
-// Specific command variants.  Some commands include additional fields such as
-// a direction vector or a smoke radius.
-export type MoveCommand = TimelineCommandBase & {
-  kind: 'move';
-  direction: Vec3;
-};
-export type FortifyCommand = TimelineCommandBase & { kind: 'fortify' };
-export type ReloadSpecialCommand = TimelineCommandBase & { kind: 'reloadSpecial' };
-export type DeploySmokeCommand = TimelineCommandBase & {
-  kind: 'deploySmoke';
-  duration: number;
-  radius: number;
-  center: Vec3;
-};
-export type RefillCommand = TimelineCommandBase & { kind: 'refill' };
-
-// Union type for commands.  Only one of the variants may be present at a
-// time.
-export type TimelineCommand =
-  | MoveCommand
-  | FortifyCommand
-  | ReloadSpecialCommand
-  | DeploySmokeCommand
-  | RefillCommand;
-
-// A timeline plan is simply a list of commands.  Commands may overlap in
-// general but the simulation enforces rules to prevent impossible actions.
-export type TimelinePlan = { commands: TimelineCommand[] };
-
-// Markers are emitted by the simulation to record notable events.  `t`
-// stores the event time, `kind` is a short tag (e.g. 'detection' or
-// 'interrupt') and `message` contains human‑readable details.
-export type TimelineMarker = { t: number; kind: string; message: string };
-
-// Interruption information.  If an interruption occurs at time `t` the
-// simulation stores the reason here.  If there is no interruption the
-// property is null.
-export type TimelineInterruption = { t: number; reason: string } | null;
-
-// Runtime information for a timeline.  `nowT` stores the current time,
-// `activeCommandId` tracks which command (if any) is executing, `interruption`
-// holds the last interruption and `markers` accumulates all emitted markers.
-export type TimelineRuntime = {
-  nowT: number;
-  activeCommandId: string | null;
-  interruption: TimelineInterruption;
-  markers: TimelineMarker[];
 };
 
 // Supply points provide ammunition or other resources to units.  They do not
