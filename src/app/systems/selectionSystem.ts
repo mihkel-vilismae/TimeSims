@@ -2,7 +2,6 @@ import * as THREE from 'three';
 import type { Camera, Raycaster, Vector2 } from 'three';
 
 import type { RuntimeWorld } from '../entities/runtimeEntities';
-import type { UiState } from '../state/uiState';
 
 export function pickUnitIdAtClient(params: {
   clientX: number;
@@ -31,12 +30,13 @@ export function pickUnitIdAtClient(params: {
 }
 
 export function applySelectionHighlight(params: {
-  ui: UiState;
   world: RuntimeWorld;
+  selectedUnitId?: string | null;
 }): void {
-  const { ui, world } = params;
+  const { world } = params;
+  const selectedUnitId = params.selectedUnitId ?? null;
   for (const u of world.units) {
-    const isSel = ui.selectedUnitId === u.id;
+    const isSel = selectedUnitId === u.id;
     u.selectionRing.visible = isSel;
   }
 }
