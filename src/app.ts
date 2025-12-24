@@ -8,6 +8,17 @@ import * as THREE from 'three';
 import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
 import { simulatePlanning } from './timesims/core/simulation';
 import type { TimelineCommand, TimelinePlan } from './model/components';
+import {
+  closeContextMenu,
+  createMenuState,
+  openContextMenu,
+  selectMenuCommand,
+  setSelectedUnitForMenu,
+  type MenuCommand,
+  type UnitKind,
+} from './timesims/uiPlan/menuState';
+
+import './style.css';
 
 // Types for game objects in this app. These mirror the simulation types
 // but include rendering state (meshes) for the 3D scene.
@@ -52,6 +63,72 @@ const pointerNdc = new THREE.Vector2();
 
 let unitSelectEl: HTMLSelectElement | null = null;
 let selectedUnitId: string | null = null;
+
+// Context menu UX shell (no plan authoring in this commit).
+let menuState = createMenuState();
+const contextMenuEl = document.createElement('div');
+contextMenuEl.className = 'context-menu';
+contextMenuEl.style.display = 'none';
+document.body.appendChild(contextMenuEl);
+
+function unitTypeToMenuKind(t: GameUnit['type']): 'infantry' | 'tank' | 'ifv' {
+  return t;
+}
+
+function setMenuSelectedUnit(unit: GameUnit | null): void {
+  menuState = setSelectedUnitForMenu(menuState, unit ? unitTypeToMenuKind(unit.type) : null);
+  if (menuState.open) renderContextMenu();
+}
+
+function renderContextMenu(): void {
+  if (!menuState.open) {
+    contextMenuEl.style.display = 'none';
+    contextMenuEl.innerHTML = '';
+    return;
+  }
+
+  contextMenuEl.style.display = 'block';
+  contextMenuEl.style.left = `${menuState.x}px`;
+  contextMenuEl.style.top = `${menuState.y}px`;
+  contextMenuEl.innerHTML = '';
+
+  const header = document.createElement('div');
+  header.className = 'context-menu__header';
+  header.textContent = menuState.selectedUnitKind ? `Commands: ${menuState.selectedUnitKind}` : 'Commands';
+  contextMenuEl.appendChild(header);
+
+  const list = document.createElement('div');
+  list.className = 'context-menu__list';
+  contextMenuEl.appendChild(list);
+
+  for (const cmd of menuState.commands) {
+    const btn = document.createElement('button');
+    btn.type = 'button';
+    btn.className = 'context-menu__item';
+    btn.textContent = labelForCommand(cmd);
+    btn.addEventListener('click', () => {
+      menuState = selectMenuCommand(menuState, cmd);
+      console.log(`[ui] selected command: ${cmd}`);
+      renderContextMenu();
+    });
+    list.appendChild(btn);
+  }
+}
+
+function labelForCommand(cmd: MenuCommand): string {
+  switch (cmd) {
+    case 'move':
+      return 'Move';
+    case 'deploySmoke':
+      return 'Deploy Smoke';
+    case 'fortify':
+      return 'Fortify';
+    case 'reloadSpecial':
+      return 'Reload Special';
+    case 'refill':
+      return 'Refill';
+  }
+}
 let refreshCmdListFn: (() => void) | null = null;
 
 function getSelectedUnitId(): string | null {
@@ -216,6 +293,39 @@ async function init() {
     if (e.button !== 0) return;
     const hitId = pickUnitIdAtClient(e.clientX, e.clientY);
     if (hitId) setSelectedUnitId(hitId);
+  });
+
+  // Right-click context menu (shell only; no plan mutations).
+  renderer.domElement.addEventListener('contextmenu', (e) => {
+    e.preventDefault();
+    if (!selectedUnitId) return;
+    const u = units.find((x) => x.id === selectedUnitId) ?? null;
+    if (!u) return;
+    menuState = setSelectedUnitForMenu(menuState, unitTypeToMenuKind(u.type));
+    menuState = openContextMenu(menuState, {
+      clientX: e.clientX,
+      clientY: e.clientY,
+      viewportW: window.innerWidth,
+      viewportH: window.innerHeight,
+    });
+    updateContextMenuDOM();
+  });
+
+  // Close on click outside.
+  document.addEventListener('pointerdown', (e) => {
+    if (!menuState.open) return;
+    const target = e.target as Node | null;
+    if (target && contextMenuEl.contains(target)) return;
+    menuState = closeContextMenu(menuState);
+    updateContextMenuDOM();
+  });
+
+  // ESC closes.
+  window.addEventListener('keydown', (e) => {
+    if (e.key !== 'Escape') return;
+    if (!menuState.open) return;
+    menuState = closeContextMenu(menuState);
+    updateContextMenuDOM();
   });
   // Start rendering loop
   animate();
